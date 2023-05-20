@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  rport-server:
+    container_name: rport
+    build: .
+    restart: always
+    privileged: true
+    ports:
+      - 3000:3000
+      - 10000:8080
+      - 20000-20010:20000-20010
+    volumes:
+      - ./rportd.conf:/etc/rport/rportd.conf:ro
+      - ./rport.key:/var/lib/rport/rport.key:ro
+      - ./rport.crt:/var/lib/rport/rport.crt:ro
+      - data:/var/lib/rport/
+    
+    command: bash -c "/usr/local/bin/rportd --data-dir /var/lib/rport -c /etc/rport/rportd.conf"
+      
+    healthcheck:
+      test: wget --no-check-certificate --spider -S https://localhost:3000 2>&1 > /dev/null | grep -q "200 OK$"
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+
+volumes:
+  data:
